@@ -1,6 +1,6 @@
 # app.py
 import streamlit as st
-import openai
+from openai import OpenAI
 import json
 from schema import medical_types, non_medical_types
 
@@ -44,14 +44,14 @@ def validate_output(response_json, schema):
 st.set_page_config(page_title="Auto-Triage Agent", layout="centered")
 st.title("🧠 Conversational Auto-Triage Agent")
 
-openai.api_key = st.secrets.get("openai_api_key")
+client = OpenAI(api_key=st.secrets["openai_api_key"])
 
 user_input = st.text_area("Enter customer question:", height=150)
 
 if st.button("Submit") and user_input:
     with st.spinner("Generating summary..."):
         summary_prompt = f"Summarize the following customer question clearly and concisely:\n{user_input}"
-        summary_response = openai.ChatCompletion.create(
+        summary_response = client.chat.completions.create(
             model="gpt-4",
             messages=[{"role": "user", "content": summary_prompt}]
         )
@@ -63,7 +63,7 @@ if st.button("Submit") and user_input:
     if st.button("Confirm Summary"):
         with st.spinner("Classifying intent..."):
             categorization_prompt = generate_categorization_prompt(summary, medical_types, non_medical_types)
-            categorization_response = openai.ChatCompletion.create(
+            categorization_response = client.chat.completions.create(
                 model="gpt-4",
                 messages=[{"role": "user", "content": categorization_prompt}]
             )
