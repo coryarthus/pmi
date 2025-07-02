@@ -83,7 +83,12 @@ if st.session_state.confirmed:
             messages=[{"role": "user", "content": categorization_prompt}]
         )
         result_text = categorization_response.choices[0].message.content.strip()
-        try:
-            result_json = json.loads(result_text)
-        except json.JSONDecodeError:
-            st.error("🔴 Failed to parse categorization result.")
+        st.markdown("### 🧪 Raw LLM Response")
+        st.code(result_text)
+
+try:
+    result_json = json.loads(result_text)
+except json.JSONDecodeError as e:
+    st.error("🔴 Failed to parse categorization result.")
+    st.code(str(e))
+    st.stop()
