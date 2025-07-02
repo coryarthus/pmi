@@ -180,12 +180,12 @@ if st.session_state.summary_accepted:
 
             if confidence < CONFIDENCE_THRESHOLD:
                 if st.session_state.clarify_attempts < MAX_CLARIFY_ATTEMPTS:
+                    if not st.session_state.awaiting_clarification:
+                        st.session_state.awaiting_clarification = True
                     st.info(
                         f"Confidence ({confidence:.2f}) is below threshold ({CONFIDENCE_THRESHOLD}). "
                         "Please provide more information to clarify your question."
                     )
-                    st.session_state.awaiting_clarification = True
-                    safe_rerun()
                 else:
                     st.warning(
                         "Maximum clarifying attempts reached without high confidence. "
