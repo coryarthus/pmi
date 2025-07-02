@@ -1,6 +1,7 @@
 # app.py
 import streamlit as st
 import json
+import sys
 from openai import OpenAI
 from schema import medical_types, non_medical_types
 
@@ -60,6 +61,10 @@ def get_static_response(non_medical_type):
         if entry["type"] == non_medical_type:
             return entry.get("static_response") or entry.get("description") or ""
     return ""
+
+def safe_rerun():
+    """Force Streamlit to rerun the script."""
+    sys.exit()
 
 # --- Initialize session state ---
 if "question" not in st.session_state:
@@ -121,11 +126,11 @@ if st.session_state.summary and st.session_state.summary_accepted is False:
             st.session_state.additional_details = ""
             st.session_state.summary = ""
             st.session_state.confirmed = False
-            st.experimental_rerun()
+            safe_rerun()
 
 # --- Step 3: If summary accepted, proceed to classification ---
 if st.session_state.summary_accepted:
-    # If user rejected previously entered additional details, offer input again
+    # If awaiting clarification, ask clarifying question
     if st.session_state.awaiting_clarification:
         st.markdown(f"### 🤔 Clarifying question (attempt {st.session_state.clarify_attempts + 1} of {MAX_CLARIFY_ATTEMPTS}):")
         clar_answer = st.text_area("Please provide more details to help clarify your question:", height=100)
@@ -134,8 +139,8 @@ if st.session_state.summary_accepted:
                 st.session_state.clarifying_answers.append(clar_answer.strip())
                 st.session_state.clarify_attempts += 1
                 st.session_state.awaiting_clarification = False
-                st.session_state.result_text = ""  # Clear old result so we re-classify
-                st.experimental_rerun()
+                st.session_state.result_text = ""  # Clear old result to re-classify
+                safe_rerun()
             else:
                 st.warning("Please enter details before submitting.")
     else:
@@ -178,17 +183,16 @@ if st.session_state.summary_accepted:
                         " Please provide more information to clarify your question."
                     )
                     st.session_state.awaiting_clarification = True
-                    st.experimental_rerun()
+                    safe_rerun()
                 else:
                     st.warning(
                         "Maximum clarifying attempts reached without high confidence. "
                         "Defaulting to Medical Information referral."
                     )
                     st.markdown("[Visit Medical Information Site](https://yourcompany.com/medical-information)")
-                    # Reset to allow new question
                     if st.button("Start Over"):
                         st.session_state.clear()
-                        st.experimental_rerun()
+                        safe_rerun()
             else:
                 # Confidence high enough: show results
                 st.markdown("### ✅ Categorization Result")
@@ -208,4 +212,5 @@ if st.session_state.summary_accepted:
 
                 if st.button("Start Over"):
                     st.session_state.clear()
-                    st.experimental_rerun()
+                    safe_rerun()
+                    
