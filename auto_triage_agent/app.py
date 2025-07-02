@@ -133,7 +133,7 @@ if st.session_state.summary and st.session_state.summary_accepted is False:
 
 # --- Step 3: If summary accepted, proceed to classification ---
 if st.session_state.summary_accepted:
-    # Show clarifying input box if awaiting clarification
+    # If awaiting clarification, show the clarifying input box
     if st.session_state.awaiting_clarification:
         st.markdown(f"### 🤔 Clarifying question (attempt {st.session_state.clarify_attempts + 1} of {MAX_CLARIFY_ATTEMPTS}):")
         clar_answer = st.text_area("Please provide more details to help clarify your question:", height=100)
@@ -181,11 +181,13 @@ if st.session_state.summary_accepted:
             if confidence < CONFIDENCE_THRESHOLD:
                 if st.session_state.clarify_attempts < MAX_CLARIFY_ATTEMPTS:
                     if not st.session_state.awaiting_clarification:
-                        st.session_state.awaiting_clarification = True
-                    st.info(
-                        f"Confidence ({confidence:.2f}) is below threshold ({CONFIDENCE_THRESHOLD}). "
-                        "Please provide more information to clarify your question."
-                    )
+                        st.info(
+                            f"Confidence ({confidence:.2f}) is below threshold ({CONFIDENCE_THRESHOLD}). "
+                            "Please provide more information to clarify your question."
+                        )
+                        if st.button("Provide More Info"):
+                            st.session_state.awaiting_clarification = True
+                            st.experimental_rerun()
                 else:
                     st.warning(
                         "Maximum clarifying attempts reached without high confidence. "
