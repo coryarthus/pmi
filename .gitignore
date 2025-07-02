@@ -1,0 +1,14 @@
+# Python cache files
+__pycache__/
+*.pyc
+
+# Streamlit secrets (local only)
+.streamlit/secrets.toml
+
+# OS files
+.DS_Store
+.env
+
+# VSCode / IDE settings (optional)
+.vscode/
+.idea/
