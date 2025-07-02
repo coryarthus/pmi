@@ -89,6 +89,9 @@ if "awaiting_clarification" not in st.session_state:
 st.set_page_config(page_title="Auto-Triage Agent", layout="centered")
 st.title("🧠 Conversational Auto-Triage Agent")
 
+# === Debug info ===
+st.caption(f"Debug: awaiting_clarification={st.session_state.awaiting_clarification}, clarify_attempts={st.session_state.clarify_attempts}")
+
 # --- Step 1: Input initial question ---
 if st.session_state.summary_accepted is None:
     user_question = st.text_area("Enter your question:", value=st.session_state.question, height=150)
@@ -130,7 +133,7 @@ if st.session_state.summary and st.session_state.summary_accepted is False:
 
 # --- Step 3: If summary accepted, proceed to classification ---
 if st.session_state.summary_accepted:
-    # If awaiting clarification, ask clarifying question
+    # Show clarifying input box if awaiting clarification
     if st.session_state.awaiting_clarification:
         st.markdown(f"### 🤔 Clarifying question (attempt {st.session_state.clarify_attempts + 1} of {MAX_CLARIFY_ATTEMPTS}):")
         clar_answer = st.text_area("Please provide more details to help clarify your question:", height=100)
@@ -176,11 +179,10 @@ if st.session_state.summary_accepted:
             confidence = float(result_json["confidence"])
 
             if confidence < CONFIDENCE_THRESHOLD:
-                # Ask clarifying question
                 if st.session_state.clarify_attempts < MAX_CLARIFY_ATTEMPTS:
                     st.info(
-                        f"Confidence ({confidence:.2f}) is below threshold ({CONFIDENCE_THRESHOLD})."
-                        " Please provide more information to clarify your question."
+                        f"Confidence ({confidence:.2f}) is below threshold ({CONFIDENCE_THRESHOLD}). "
+                        "Please provide more information to clarify your question."
                     )
                     st.session_state.awaiting_clarification = True
                     safe_rerun()
@@ -194,7 +196,6 @@ if st.session_state.summary_accepted:
                         st.session_state.clear()
                         safe_rerun()
             else:
-                # Confidence high enough: show results
                 st.markdown("### ✅ Categorization Result")
                 st.json(result_json)
 
