@@ -52,6 +52,8 @@ if "summary" not in st.session_state:
     st.session_state.summary = ""
 if "confirmed" not in st.session_state:
     st.session_state.confirmed = False
+if "result_text" not in st.session_state:
+    st.session_state.result_text = ""
 
 user_input = st.text_area("Enter customer question:", height=150)
 
@@ -64,6 +66,7 @@ if st.button("Submit") and user_input:
         )
         st.session_state.summary = summary_response.choices[0].message.content.strip()
         st.session_state.confirmed = False
+        st.session_state.result_text = ""
 
 if st.session_state.summary:
     st.markdown("### ✍️ Summary")
@@ -73,7 +76,7 @@ if st.session_state.summary:
         if st.button("Confirm Summary"):
             st.session_state.confirmed = True
 
-if st.session_state.confirmed:
+if st.session_state.confirmed and not st.session_state.result_text:
     with st.spinner("Classifying intent..."):
         categorization_prompt = generate_categorization_prompt(
             st.session_state.summary, medical_types, non_medical_types
@@ -82,13 +85,9 @@ if st.session_state.confirmed:
             model="gpt-4",
             messages=[{"role": "user", "content": categorization_prompt}]
         )
-        result_text = categorization_response.choices[0].message.content.strip()
-        st.markdown("### 🧪 Raw LLM Response")
-        st.code(result_text)
+        st.session_state.result_text = categorization_response.choices[0].message.content.strip()
 
-try:
-    result_json = json.loads(result_text)
-except json.JSONDecodeError as e:
-    st.error("🔴 Failed to parse categorization result.")
-    st.code(str(e))
-    st.stop()
+if st.session_state.result_text:
+    st.markdown("### 🧪 Raw LLM Response")
+    st.code(st.session_state.result_text)
+
